@@ -101,7 +101,11 @@ while True:
             total_uploaded += uploaded
             rate = (total_uploaded / 1000.0) / (time.time() - started)
             print '%5d/%5d (%.3f kB/s): %s -> %s' % (i, len(local.photos), rate, photo.fullpath, result)
+        print 'Totally finished'
+        break
     except Exception, exc:
         print exc
         time.sleep(10)
         print 'Slept 10s. Continuing...'
+
+print 'Exiting'
