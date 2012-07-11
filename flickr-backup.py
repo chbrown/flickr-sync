@@ -7,6 +7,7 @@ from datetime import datetime
 import redis
 import flickr_api
 from credentials import api_key, api_secret, access_token_key, access_token_secret
+from collections import defaultdict
 
 img_re = re.compile('(png|jpg|jpeg)', re.I)
 
@@ -92,11 +93,14 @@ class LocalFolder(object):
 
 base_path = sys.argv[-1]
 started = time.time()
+current_photo = None
+failures = defaultdict(int)
 while True:
     try:
         local = LocalFolder(base_path)
         total_uploaded = 0
         for i, photo in enumerate(local.photos):
+            current_photo = photo
             result, uploaded = photo.ensure_photo()
             total_uploaded += uploaded
             rate = (total_uploaded / 1000.0) / (time.time() - started)
@@ -104,8 +108,12 @@ while True:
         print 'Totally finished'
         break
     except Exception, exc:
-        print exc
-        time.sleep(10)
-        print 'Slept 10s. Continuing...'
+        print 'Failed uploading', current_photo.fullpath
+        failures[current_photo.fullpath] += 1
+        if failures[current_photo.fullpath] > 1:
+            result = 'failed twice (too often) at %s' % datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
+            r.set(current_photo.cache_key, result)
+        time.sleep(5)
+        print 'Slept 5s. Continuing...'
 
 print 'Exiting'
