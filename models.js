@@ -133,7 +133,7 @@ LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callb
       is_public: 0, is_friend: 0, is_family: 0, hidden: 2,
       file: fs.openSync(fullpath, 'r')
     };
-    flickr_client.api('upload', data, function(err, response) {
+    flickr_client.api('upload', data, {method: 'POST'}, function(err, response) {
       logerr(err);
       var photo_id = response.photoid;
       flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.id, photo_id: photo_id}, function(err, response) {
@@ -150,6 +150,4 @@ LocalPhoto.prototype.toString = function() {
 };
 
 exports.FlickrDatabase = FlickrDatabase;
-// exports.FlickrPhotoset = FlickrPhotoset;
-// exports.FlickrPhoto = FlickrPhoto;
 exports.LocalPhoto = LocalPhoto;

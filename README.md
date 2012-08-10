@@ -37,7 +37,7 @@ flickr.photosets.getList
     }
 
 flickr.photos.search
-    
+
     {
       photos: {
         photo: [
