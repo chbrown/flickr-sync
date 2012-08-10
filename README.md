@@ -54,6 +54,6 @@ For example, here is a smidgen of my Pictures directory:
 
 Each picture is about 10 MB, so for this structure and size, I would run:
 
-    node backup.js --dir=/Users/chbrown/Pictures/Photos --workers=5
+    node backup.js --dir=/Users/chbrown/Pictures --workers=5
 
 For smaller pictures, or if you have a whole lot of bandwidth, you can add more workers.
