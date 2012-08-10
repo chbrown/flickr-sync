@@ -21,14 +21,14 @@ function init(callback) {
   // callback signature: (err)
   readOptions(function(err, opts) {
     client = new Flickr(opts.FLICKR_API_KEY, opts.FLICKR_API_SECRET,
-      {oauth_token: opts.FLICKR_OA_TOKEN, oauth_token_secret: opts.FLICKR_OA_TOKEN_SECRET});
+      opts.FLICKR_OA_TOKEN, opts.FLICKR_OA_TOKEN_SECRET);
     callback();
   });
 }
 
 function api(method_name, data, options, callback) {
   // overloaded as (method_name, data, callback)
-  return client.executeAPIRequest(method_name, data, true, options, callback);
+  return client.createRequest(method_name, data, true, options, callback).send();
 }
 
 exports.init = init;

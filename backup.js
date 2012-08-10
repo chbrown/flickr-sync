@@ -6,6 +6,7 @@ var path = require('path'),
   img_regex = /(png|jpg|jpeg)/i,
   argv = require('optimist').argv;
 
+function logerr(err) { if (err) console.log("ERR", err); }
 
 function WorkerPool(max_workers, work) {
   this.workers = 0;
@@ -31,7 +32,8 @@ flickr_client.init(function(err) {
   if (err) console.error(err);
 
   // 1. get the backup-cover-photo (silly Flickr requirement)
-  flickr_client.api("flickr.photos.search", {user_id: 'me', title: 'flickr-store', tags: 'api'}, function(err, response) {
+  flickr_client.api("flickr.photos.search", {user_id: 'me', text: 'flickr-store', tags: 'api'}, function(err, response) {
+    logerr(err);
     console.log("Using backup_cover_photo:", response.photos.photo[0].id);
     // process.exit(999);
 
@@ -45,28 +47,29 @@ flickr_client.init(function(err) {
         // });
 
         var work = function(callback) {
-          var file = files.shift(),
-            fullpath = path.join(directory, file),
-            file_parts = file.split(/\//),
-            photoset_title = file_parts[0],
-            photo_title = file_parts[1];
+          var file = files.shift();
 
           // check the exit condition:
           if (file === undefined) {
             console.log("No more photos could be found!");
             process.exit();
           }
+          
+          var fullpath = path.join(directory, file),
+            file_parts = file.split(/\//),
+            photoset_title = file_parts[0],
+            photo_title = file_parts[1],
+            local_photo = new models.LocalPhoto(photo_title);
 
-          var local_photo = new models.LocalPhoto(photo_title);
           local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
             if (exists) {
-              console.log("Photo already exists in Flickr", local_photo.toString());
+              console.log("Photo already exists in Flickr:", local_photo.toString());
               callback();
             }
             else {
               // console.log("Photo already exists in Flickr");
               local_photo.upload(photoset_title, fullpath, flickr_database, function() {
-                console.log("Photo uploaded to Flickr", local_photo.toString());
+                console.log("Photo uploaded to Flickr:", local_photo.toString());
                 callback();
               });
             }

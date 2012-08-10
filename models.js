@@ -125,18 +125,19 @@ LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callb
 };
 LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callback) {
   var self = this;
-  // callback signature: ()
-  console.log('LocalPhoto.upload:', fullpath, 'to', photoset_title);
   database.getPhotoset(photoset_title, function(photoset) {
-    var data = {
+    var params = {
       title: self.title, description: 'flickr-store', tags: 'flickr-store',
-      is_public: 0, is_friend: 0, is_family: 0, hidden: 2,
-      file: fs.openSync(fullpath, 'r')
+      is_public: 0, is_friend: 0, is_family: 0, hidden: 2
     };
-    flickr_client.api('upload', data, {method: 'POST'}, function(err, response) {
+    var options = {
+      method: 'POST',
+      file: fs.createReadStream(fullpath, {flags: 'r'})
+    };
+    flickr_client.api('upload', params, options, function(err, response) {
       logerr(err);
       var photo_id = response.photoid;
-      flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.id, photo_id: photo_id}, function(err, response) {
+      flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.raw.id, photo_id: photo_id}, function(err, response) {
         flickr_client.api('flickr.photos.getInfo', {photo_id: photo_id}, function(err, response) {
           photoset.addPhoto(response.photo);
           callback();
