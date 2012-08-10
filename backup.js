@@ -35,18 +35,17 @@ flickr_client.init(function(err) {
   flickr_client.api("flickr.photos.search", {user_id: 'me', text: 'flickr-store', tags: 'api'}, function(err, response) {
     logerr(err);
     console.log("Using backup_cover_photo:", response.photos.photo[0].id);
-    // process.exit(999);
 
-    var directory = argv.dir,
-      flickr_database = new models.FlickrDatabase(response.photos.photo[0]);
-    flickr_database.init(function() {
-      // 2. get the list of all the photos we want to add
-      glob('*/*.jpg', {cwd: directory, nocase: true}, function (err, files) {
-        // var queue = files.map(function(file) {
-        //   return new LocalPhoto(file_parts[0], file_parts[1], fullpath);
-        // });
-        console.log("Queueing up " + files.length + " files.");
+    // 2. get the list of all the photos we want to add
+    glob('*/*.jpg', {cwd: argv.dir, nocase: true}, function (err, files) {
+      console.log("Queueing up " + files.length + " files.");
 
+      var albums = {};
+      files.forEach(function(file) { albums[file.split(/\//)[0]] = 1; });
+
+      var flickr_database = new models.FlickrDatabase(response.photos.photo[0]);
+      flickr_database.init(Object.keys(albums), function() {
+        console.log("Preloaded albums:", Object.keys(albums).join(', '));
         var work = function(callback) {
           var file = files.shift();
 
@@ -56,7 +55,7 @@ flickr_client.init(function(err) {
             process.exit();
           }
           
-          var fullpath = path.join(directory, file),
+          var fullpath = path.join(argv.dir, file),
             file_parts = file.split(/\//),
             photoset_title = file_parts[0],
             photo_title = file_parts[1],
@@ -77,7 +76,9 @@ flickr_client.init(function(err) {
           });
         };
 
-        var pool = new WorkerPool(20, work);
+        var max_workers = parseInt(argv.workers || 10, 10);
+        console.log('Starting work with ' + max_workers + ' workers.');
+        var pool = new WorkerPool(max_workers, work);
         pool.bump();
       });
     });

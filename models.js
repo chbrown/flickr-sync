@@ -10,19 +10,35 @@ function FlickrDatabase(backup_cover_photo) {
   // photosets is {photoset_title: <FlickrPhotoset> object, ...}
   this.photosets = {};
 }
-FlickrDatabase.prototype.init = function(callback) {
-  this.syncPhotosets(callback);
+FlickrDatabase.prototype.init = function(photoset_titles, callback) {
+  var self = this;
+  this.syncPhotosets(function() {
+    // preload albums
+    (function next() {
+      var photoset_title = photoset_titles.shift();
+      if (photoset_title !== undefined) {
+        self.getPhotoset(photoset_title, function(photoset) {
+          console.log("Syncing photoset:", photoset.title);
+          photoset.sync(next);
+        });
+      }
+      else {
+        callback();
+      }
+    })();
+  });
 };
+
 FlickrDatabase.prototype.addPhotoset = function(raw_photoset) {
   var title = raw_photoset.title._content,
-    photoset = new FlickrPhotoset(title, raw_photoset);
-  this.photosets[title] = photoset;
+    photoset = this.photosets[title] = new FlickrPhotoset(title, raw_photoset);
   return photoset;
 };
 FlickrDatabase.prototype.syncPhotosets = function(callback) {
   // callback signature: ()
   var self = this;
   flickr_client.api('flickr.photosets.getList', {per_page: 500}, function(err, response) {
+    logerr(err);
     response.photosets.photoset.forEach(function(photoset) {
       self.addPhotoset(photoset);
     });
@@ -39,8 +55,12 @@ FlickrDatabase.prototype.getPhotoset = function(photoset_title, callback) {
   else {
     var data = {title: photoset_title, description: 'flickr-store', primary_photo_id: this.backup_cover_photo.id};
     flickr_client.api('flickr.photosets.create', data, function(err, response) {
-      var photoset = self.addPhotoset(response.photoset);
-      callback(photoset);
+      logerr(err);
+      flickr_client.api('flickr.photosets.getInfo', {photoset_id: response.photoset.id}, function(err, response) {
+        logerr(err);
+        var photoset = self.addPhotoset(response.photoset);
+        callback(photoset);
+      });
     });
   }
 };
