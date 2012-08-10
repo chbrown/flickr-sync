@@ -41,10 +41,11 @@ flickr_client.init(function(err) {
       flickr_database = new models.FlickrDatabase(response.photos.photo[0]);
     flickr_database.init(function() {
       // 2. get the list of all the photos we want to add
-      glob('*/*.jpg', {cwd: directory}, function (err, files) {
+      glob('*/*.jpg', {cwd: directory, nocase: true}, function (err, files) {
         // var queue = files.map(function(file) {
         //   return new LocalPhoto(file_parts[0], file_parts[1], fullpath);
         // });
+        console.log("Queueing up " + files.length + " files.");
 
         var work = function(callback) {
           var file = files.shift();
@@ -76,7 +77,7 @@ flickr_client.init(function(err) {
           });
         };
 
-        var pool = new WorkerPool(1, work);
+        var pool = new WorkerPool(20, work);
         pool.bump();
       });
     });

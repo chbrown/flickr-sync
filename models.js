@@ -135,14 +135,19 @@ LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callb
       file: fs.createReadStream(fullpath, {flags: 'r'})
     };
     flickr_client.api('upload', params, options, function(err, response) {
-      logerr(err);
-      var photo_id = response.photoid;
-      flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.raw.id, photo_id: photo_id}, function(err, response) {
-        flickr_client.api('flickr.photos.getInfo', {photo_id: photo_id}, function(err, response) {
-          photoset.addPhoto(response.photo);
-          callback();
+      if (err) {
+        console.error("Could not upload photo: " + self.toString() + ". Error message:");
+        console.error(err);
+      }
+      else {
+        var photo_id = response.photoid;
+        flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.raw.id, photo_id: photo_id}, function(err, response) {
+          flickr_client.api('flickr.photos.getInfo', {photo_id: photo_id}, function(err, response) {
+            photoset.addPhoto(response.photo);
+            callback();
+          });
         });
-      });
+      }
     });
   });
 };
