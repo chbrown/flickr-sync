@@ -32,7 +32,7 @@ flickr_client.init(function(err) {
   if (err) console.error(err);
 
   // 1. get the backup-cover-photo (silly Flickr requirement)
-  flickr_client.api("flickr.photos.search", {user_id: 'me', text: 'flickr-store', tags: 'api'}, function(err, response) {
+  flickr_client.api("flickr.photos.search", {user_id: 'me', tags: 'api'}, function(err, response) {
     logerr(err);
     console.log("Using backup_cover_photo:", response.photos.photo[0].id);
 
@@ -63,13 +63,13 @@ flickr_client.init(function(err) {
 
           local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
             if (exists) {
-              console.log("Photo already exists in Flickr:", local_photo.toString());
+              console.log(local_photo.title, 'already exists in photoset', photoset_title);
               callback();
             }
             else {
               // console.log("Photo already exists in Flickr");
               local_photo.upload(photoset_title, fullpath, flickr_database, function() {
-                console.log("Photo uploaded to Flickr:", local_photo.toString());
+                console.log(local_photo.title, 'uploaded to', photoset_title);
                 callback();
               });
             }

@@ -9,8 +9,8 @@
   "author" : "Christopher Brown <io@henrian.com>",
   "main" : "flickr-backup.js",
   "dependencies" : {
-    "flickr": "git://github.com/chbrown/node-flickr.git",
-    "optimist": "x",
-    "glob": "x"
+    "flickr-with-uploads": "*",
+    "optimist": "*",
+    "glob": "*"
   }
 }

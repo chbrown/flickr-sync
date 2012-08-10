@@ -148,13 +148,10 @@ LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callb
   database.getPhotoset(photoset_title, function(photoset) {
     var params = {
       title: self.title, description: 'flickr-store', tags: 'flickr-store',
-      is_public: 0, is_friend: 0, is_family: 0, hidden: 2
+      is_public: 0, is_friend: 0, is_family: 0, hidden: 2,
+      photo: fs.createReadStream(fullpath, {flags: 'r'})
     };
-    var options = {
-      method: 'POST',
-      file: fs.createReadStream(fullpath, {flags: 'r'})
-    };
-    flickr_client.api('upload', params, options, function(err, response) {
+    flickr_client.api('upload', params, function(err, response) {
       if (err) {
         console.error("Could not upload photo: " + self.toString() + ". Error message:");
         console.error(err);

@@ -1,6 +1,6 @@
 var fs = require('fs'),
   path = require('path'),
-  Flickr = require('flickr').Flickr,
+  Flickr = require('flickr-with-uploads').Flickr,
   client;
 
 function readOptions(callback) {
@@ -26,9 +26,8 @@ function init(callback) {
   });
 }
 
-function api(method_name, data, options, callback) {
-  // overloaded as (method_name, data, callback)
-  return client.createRequest(method_name, data, true, options, callback).send();
+function api(method_name, data, callback) {
+  return client.createRequest(method_name, data, true, callback).send();
 }
 
 exports.init = init;
