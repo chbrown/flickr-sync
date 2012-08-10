@@ -23,3 +23,34 @@ Make a new app on Flickr, and create a file called `credentials.py`, which shoul
     access_token_key = 'FYSWxIJTGwvDHc98P-0n2tVdLUkmQsCBOX3'
     access_token_secret = 'H8RcVM96oLtA0Gpd'
 
+## Example responses:
+
+flickr.photosets.getList
+
+    {
+      photosets: {
+        photoset: [
+          { id: '72157630888396238', primary: '7500858540', secret: '6acdf92dec', server: '8014', farm: 9, photos: 3, videos: '0', title: { _content: '20120716 Iceland - Reykjavik' }, description: { _content: 'flickr-store' }, needs_interstitial: 0, visibility_can_see_set: 1, count_views: '0', count_comments: '0', can_comment: 1, date_create: '1344024608', date_update: '1344024918' },
+          ...
+        ],
+      }
+    }
+
+flickr.photos.search
+    
+    {
+      photos: {
+        photo: [
+          { id: '7500858540', owner: '33947520@N00', secret: '6acdf92dec', server: '8014', farm: 9, title: 'flickr-store', ispublic: 0, isfriend: 0, isfamily: 0 }
+        ],
+        ...
+      }
+    }
+
+flickr.test.login
+
+    {
+      user: { id: '33947520@N00', username: { _content: 'audiere' } },
+      stat: 'ok'
+    }
+

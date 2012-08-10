@@ -4,8 +4,21 @@ import re
 import sys
 import time
 from datetime import datetime
-import redis
-import flickr_api
+
+try:
+    import redis
+except Exception, exc:
+    os.system('pip install redis oauth')
+    print 'Installed redis and oauth. Please retry.'
+    sys.exit(1)
+
+try:
+    import flickr_api
+except Exception, exc:
+    os.system('pip install git+git://github.com/alexis-mignon/python-flickr-api.git#egg=flickr_api')
+    print 'Installed flickr_api from git repository. Please retry.'
+    sys.exit(1)
+
 from credentials import api_key, api_secret, access_token_key, access_token_secret
 from collections import defaultdict
 

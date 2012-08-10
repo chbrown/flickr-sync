@@ -1,0 +1,17 @@
+{
+  "name": "flickr-backup",
+  "version": "0.0.2",
+  "homepage": "https://github.com/chbrown/flickr-backup",
+  "repository" : {
+    "type" : "git",
+    "url" : "git@github.com:chbrown/flickr-backup.git"
+  },
+  "author" : "Christopher Brown <io@henrian.com>",
+  "main" : "flickr-backup.js",
+  "dependencies" : {
+    "flickr": "git://github.com/chbrown/node-flickr.git",
+    "optimist": "x",
+    "redis": "x",
+    "glob": "x"
+  }
+}
