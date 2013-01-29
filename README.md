@@ -18,8 +18,6 @@ Simple: `brew install node`
 
 Just `npm install` to install those from the package.json file.
 
-(I got rid of the Redis requirement, though the Python script (legacy) still requires it. Now it takes a bit longer to load up and check out your Flickr pages, but it's one less pretty big requirement, so an overall win, I think.)
-
 ## Setup:
 
 Make a new app on Flickr, and create a file called `.env`, which should look like this (after all the auth has been set up):

@@ -3,7 +3,6 @@ var flickr_client = require('./flickr_client'),
   logerr = function(err) { if (err) console.log("ERR", err); };
 
 
-
 function FlickrDatabase(backup_cover_photo) {
   this.backup_cover_photo = backup_cover_photo;
 

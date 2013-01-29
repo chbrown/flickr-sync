@@ -38,7 +38,8 @@ flickr_client.init(function(err) {
 
     // 2. get the list of all the photos we want to add
     glob('*/*.jpg', {cwd: argv.dir, nocase: true}, function (err, files) {
-      console.log("Queueing up " + files.length + " files.");
+      var total = files.length;
+      console.log("Queueing up " + total + " files.");
 
       var albums = {};
       files.forEach(function(file) { albums[file.split(/\//)[0]] = 1; });
@@ -46,7 +47,7 @@ flickr_client.init(function(err) {
       var flickr_database = new models.FlickrDatabase(response.photos.photo[0]);
       flickr_database.init(Object.keys(albums), function() {
         console.log("Preloaded albums:", Object.keys(albums).join(', '));
-        var work = function(callback) {
+        var work = function(finished) {
           var file = files.shift();
 
           // check the exit condition:
@@ -55,25 +56,32 @@ flickr_client.init(function(err) {
             process.exit();
           }
           
-          var fullpath = path.join(argv.dir, file),
-            file_parts = file.split(/\//),
-            photoset_title = file_parts[0],
-            photo_title = file_parts[1],
-            local_photo = new models.LocalPhoto(photo_title);
+          try {
+            var fullpath = path.join(argv.dir, file),
+              file_parts = file.split(/\//),
+              photoset_title = file_parts[0],
+              photo_title = file_parts[1],
+              local_photo = new models.LocalPhoto(photo_title);
 
-          local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
-            if (exists) {
-              console.log(local_photo.title, 'already exists in photoset', photoset_title);
-              callback();
-            }
-            else {
-              // console.log("Photo already exists in Flickr");
-              local_photo.upload(photoset_title, fullpath, flickr_database, function() {
-                console.log(local_photo.title, 'uploaded to', photoset_title);
-                callback();
-              });
-            }
-          });
+            local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
+              var name = '(' + (total - files.length) + '/' + total + ') ' + local_photo.title;
+              if (exists) {
+                console.log(name + ' already exists in photoset, ' + photoset_title);
+                finished();
+              }
+              else {
+                // console.log("Photo already exists in Flickr");
+                local_photo.upload(photoset_title, fullpath, flickr_database, function() {
+                  console.log(name + ' uploaded to, ' + photoset_title);
+                  finished();
+                });
+              }
+            });
+          }
+          catch (exc) {
+            console.error('Encountered some error, printing and continuing');
+            console.error(exc.toString());
+          }
         };
 
         var max_workers = parseInt(argv.workers || 10, 10);
