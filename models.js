@@ -129,8 +129,8 @@ function LocalPhoto(title) {
   // this.cache_key = 'flickr:' + album + '/' + title;
 }
 LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callback) {
-  var self = this;
   // callback signature: (<bool> exists)
+  var self = this;
   var photoset = database.photosets[photoset_title];
   if (photoset) {
     photoset.sync(function() {
@@ -143,6 +143,7 @@ LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callb
   }
 };
 LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callback) {
+  // callback signature: (<bool> exists)
   var self = this;
   database.getPhotoset(photoset_title, function(photoset) {
     var params = {
@@ -151,19 +152,15 @@ LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callb
       photo: fs.createReadStream(fullpath, {flags: 'r'})
     };
     flickr_client.api('upload', params, function(err, response) {
-      if (err) {
-        console.error("Could not upload photo: " + self.toString() + ". Error message:");
-        console.error(err);
-      }
-      else {
-        var photo_id = response.photoid;
-        flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.raw.id, photo_id: photo_id}, function(err, response) {
-          flickr_client.api('flickr.photos.getInfo', {photo_id: photo_id}, function(err, response) {
-            photoset.addPhoto(response.photo);
-            callback();
-          });
+      if (err) return callback(err);
+      var photo_id = response.photoid;
+      flickr_client.api('flickr.photosets.addPhoto', {photoset_id: photoset.raw.id, photo_id: photo_id}, function(err, response) {
+        if (err) return callback(err);
+        flickr_client.api('flickr.photos.getInfo', {photo_id: photo_id}, function(err, response) {
+          photoset.addPhoto(response.photo);
+          callback(err);
         });
-      }
+      });
     });
   });
 };
