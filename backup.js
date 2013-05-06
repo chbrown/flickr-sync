@@ -33,9 +33,14 @@ flickr_client.init(function(err) {
       console.log('Queueing up ' + total + ' files.');
 
       var albums = {};
-      files.forEach(function(file, index) {
-        file.index = index;
-        albums[file.split(/\//)[0]] = 1;
+      var local_photos = files.map(function(file, index) {
+        var file_parts = file.split(/\//);
+        var local_photo = new models.LocalPhoto(file_parts[1],
+          file_parts[0], path.join(argv.dir, file));
+
+        local_photo.index = index;
+        albums[local_photo.photoset_title] = 1;
+        return local_photo;
       });
       var album_names = Object.keys(albums);
 
@@ -43,27 +48,22 @@ flickr_client.init(function(err) {
       flickr_database.init(album_names, function() {
         console.log('Preloaded albums:', album_names.join(', '));
 
-        async.eachLimit(files, argv.workers, function(file, finished) {
-          var fullpath = path.join(argv.dir, file);
-          var file_parts = file.split(/\//);
-          var photoset_title = file_parts[0];
-          var photo_title = file_parts[1];
-          var local_photo = new models.LocalPhoto(photo_title);
+        async.eachLimit(local_photos, argv.workers, function(local_photo, finished) {
 
-          var name = '(' + file.index + '/' + total + ') ' + local_photo.title;
-          local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
+          var name = '(' + local_photo.index + '/' + total + ') ' + local_photo.title;
+          local_photo.existsInPhotoset(local_photo.photoset_title, flickr_database, function(exists) {
             if (exists) {
-              console.log(name + ' already exists in ' + photoset_title);
+              console.log(name + ' already exists in ' + local_photo.photoset_title);
               finished();
             }
             else {
-              local_photo.upload(photoset_title, fullpath, flickr_database, function(err) {
+              local_photo.upload(local_photo.photoset_title, local_photo.fullpath, flickr_database, function(err) {
                 if (err) {
-                  console.error('Failed uploading ' + name + ' to ' + photoset_title + '. Error message:');
+                  console.error('Failed uploading ' + name + ' to ' + local_photo.photoset_title + '. Error message:');
                   console.error(err);
                 }
                 else {
-                  console.log(name + ' uploaded to ' + photoset_title);
+                  console.log(name + ' uploaded to ' + local_photo.photoset_title);
                 }
                 finished();
               });

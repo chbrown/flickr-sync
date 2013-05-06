@@ -124,9 +124,10 @@ function FlickrPhoto(title, raw) {
 
 
 
-function LocalPhoto(title) {
+function LocalPhoto(title, photoset_title, fullpath) {
   this.title = title;
-  // this.cache_key = 'flickr:' + album + '/' + title;
+  this.photoset_title = photoset_title;
+  this.fullpath = fullpath;
 }
 LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callback) {
   // callback signature: (<bool> exists)
