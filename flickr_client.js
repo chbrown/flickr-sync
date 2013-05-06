@@ -1,7 +1,7 @@
-var fs = require('fs'),
-  path = require('path'),
-  Flickr = require('flickr-with-uploads').Flickr,
-  client;
+var fs = require('fs');
+var path = require('path');
+var Flickr = require('flickr-with-uploads').Flickr;
+var client;
 
 function readOptions(callback) {
   // callback signature: (err, option_dictionary)
