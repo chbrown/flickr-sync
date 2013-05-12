@@ -28,7 +28,7 @@ The `.env` file should look like this (after all the auth has been set up):
     FLICKR_OA_TOKEN=FYSWxIJTGwvDHc98P-0n2tVdLUkmQsCBOX3
     FLICKR_OA_TOKEN_SECRET=H8RcVM96oLtA0Gpd
 
-See chbrown/autoauth for help on getting these credentials together. It's a bit of a pain, I know.
+See [chbrown/autoauth] for help on getting these credentials together. It's a bit of a pain, I know.
 
 ## Instructions
 
