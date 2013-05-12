@@ -28,7 +28,7 @@ The `.env` file should look like this (after all the auth has been set up):
     FLICKR_OA_TOKEN=FYSWxIJTGwvDHc98P-0n2tVdLUkmQsCBOX3
     FLICKR_OA_TOKEN_SECRET=H8RcVM96oLtA0Gpd
 
-Sorry, there's not a super easy way to figure out a token and secret for yourself, at the moment. I'm working on a `phantomjs` app to do that, at the moment.
+See chbrown/autoauth for help on getting these credentials together. It's a bit of a pain, I know.
 
 ## Instructions
 
