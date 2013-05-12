@@ -13,8 +13,8 @@ You should have this already.
 Simple: `brew install node`
 
 * [flickr-with-uploads](https://github.com/chbrown/flickr-with-uploads)
-* [optimist](https://http://github.com/substack/node-optimist)
-* [glob](https://http://github.com/isaacs/node-glob)
+* [optimist](https://github.com/substack/node-optimist)
+* [glob](https://github.com/isaacs/node-glob)
 
 Just `npm install` to install those from the package.json file.
 
@@ -28,7 +28,12 @@ The `.env` file should look like this (after all the auth has been set up):
     FLICKR_OA_TOKEN=FYSWxIJTGwvDHc98P-0n2tVdLUkmQsCBOX3
     FLICKR_OA_TOKEN_SECRET=H8RcVM96oLtA0Gpd
 
-See (chbrown/autoauth) for help on getting these credentials together. It's a bit of a pain, I know.
+See [AutoAuth](https://github.com/chbrown/autoauth) for help on getting these credentials together. It's a bit of a pain, I know.
+
+* `FLICKR_API_KEY=`*the "App Key"*
+* `FLICKR_API_SECRET=`*the "App Secret"*
+* `FLICKR_OA_TOKEN=`*access_token=??? output*
+* `FLICKR_OA_TOKEN_SECRET=`*access_token_secret=??? output*
 
 ## Instructions
 
