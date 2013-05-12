@@ -37,7 +37,7 @@ flickr_client.init(function(err) {
         var local_photo = new models.LocalPhoto(file_parts[1],
           file_parts[0], path.join(argv.dir, file));
 
-        local_photo.index = index;
+        local_photo.index = index + 1;
         albums[local_photo.photoset_title] = 1;
         return local_photo;
       });
@@ -48,7 +48,6 @@ flickr_client.init(function(err) {
         console.log('Preloaded albums:', album_names.join(', '));
 
         async.eachLimit(local_photos, argv.workers, function(local_photo, finished) {
-
           var name = '(' + local_photo.index + '/' + total + ') ' + local_photo.title;
           local_photo.existsInPhotoset(local_photo.photoset_title, flickr_database, function(exists) {
             if (exists) {
