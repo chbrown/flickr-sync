@@ -30,10 +30,10 @@ The `.env` file should look like this (after all the auth has been set up):
 
 See [AutoAuth](https://github.com/chbrown/autoauth) for help on getting these credentials together. It's a bit of a pain, I know.
 
-* `FLICKR_API_KEY=`*the "App Key"*
-* `FLICKR_API_SECRET=`*the "App Secret"*
-* `FLICKR_OA_TOKEN=`*access_token=??? output*
-* `FLICKR_OA_TOKEN_SECRET=`*access_token_secret=??? output*
+* `FLICKR_API_KEY=` *the "App Key"*
+* `FLICKR_API_SECRET=` *the "App Secret"*
+* `FLICKR_OA_TOKEN=` *access_token=??? output*
+* `FLICKR_OA_TOKEN_SECRET=` *access_token_secret=??? output*
 
 ## Instructions
 
