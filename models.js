@@ -1,6 +1,6 @@
-var flickr_client = require('./flickr_client'),
-  fs = require('fs'),
-  logerr = function(err) { if (err) console.log("ERR", err); };
+var flickr_client = require('./flickr_client');
+var fs = require('fs');
+var logerr = function(err) { if (err) console.log("ERR", err); };
 
 
 function FlickrDatabase(backup_cover_photo) {

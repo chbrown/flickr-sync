@@ -20,14 +20,15 @@ Just `npm install` to install those from the package.json file.
 
 ## Setup:
 
-Make a new app on Flickr, and create a file called `.env`, which should look like this (after all the auth has been set up):
+Make a new app on Flickr, and create a file called `.env` in the same directory as `backup.js`.
+The `.env` file should look like this (after all the auth has been set up):
 
     FLICKR_API_KEY=i0LOwemEyB7SHoQgzGfvxPKjhlIbuDYs
     FLICKR_API_SECRET=FnM2RhOwXjB5tVrl
     FLICKR_OA_TOKEN=FYSWxIJTGwvDHc98P-0n2tVdLUkmQsCBOX3
     FLICKR_OA_TOKEN_SECRET=H8RcVM96oLtA0Gpd
 
-Sorry, there's not a super easy way to figure out a token and secret for yourself, at the moment. I'm working on a `phantomjs` app to do that, at the moment. 
+Sorry, there's not a super easy way to figure out a token and secret for yourself, at the moment. I'm working on a `phantomjs` app to do that, at the moment.
 
 ## Instructions
 
