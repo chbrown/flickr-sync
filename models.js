@@ -1,6 +1,7 @@
 var flickr_client = require('./flickr_client');
 var fs = require('fs');
-var logerr = function(err) { if (err) console.log("ERR", err); };
+var async = require('async');
+var logerr = function(err) { if (err) console.log('ERR', err); };
 
 
 function FlickrDatabase(backup_cover_photo) {
@@ -13,18 +14,12 @@ FlickrDatabase.prototype.init = function(photoset_titles, callback) {
   var self = this;
   this.syncPhotosets(function() {
     // preload albums
-    (function next() {
-      var photoset_title = photoset_titles.shift();
-      if (photoset_title !== undefined) {
-        self.getPhotoset(photoset_title, function(photoset) {
-          console.log("Syncing photoset:", photoset.title);
-          photoset.sync(next);
-        });
-      }
-      else {
-        callback();
-      }
-    })();
+    async.each(photoset_titles, function(photoset_title, next) {
+      self.getPhotoset(photoset_title, function(photoset) {
+        console.log('Syncing photoset: ' + photoset.title);
+        photoset.sync(next);
+      });
+    }, callback);
   });
 };
 
@@ -46,13 +41,15 @@ FlickrDatabase.prototype.syncPhotosets = function(callback) {
 };
 FlickrDatabase.prototype.getPhotoset = function(photoset_title, callback) {
   // callback signature: (<FlickrPhotoset> object)
-  var self = this,
-    photoset = this.photosets[photoset_title];
+  var self = this;
+  var photoset = this.photosets[photoset_title];
   if (photoset) {
-    process.nextTick(function() { callback(photoset); });
+    setImmediate(function() { callback(photoset) });
   }
   else {
-    var data = {title: photoset_title, description: 'flickr-store', primary_photo_id: this.backup_cover_photo.id};
+    var data = {title: photoset_title,
+      description: 'flickr-store',
+      primary_photo_id: this.backup_cover_photo.id};
     flickr_client.api('flickr.photosets.create', data, function(err, response) {
       logerr(err);
       flickr_client.api('flickr.photosets.getInfo', {photoset_id: response.photoset.id}, function(err, response) {
@@ -76,8 +73,8 @@ function FlickrPhotoset(title, raw) {
   this.synced = false;
 }
 FlickrPhotoset.prototype.addPhoto = function(raw_photo) {
-  var title = raw_photo.title,
-    photo = this.photos[title] = new FlickrPhoto(title, raw_photo);
+  var title = raw_photo.title;
+  var photo = this.photos[title] = new FlickrPhoto(title, raw_photo);
   return photo;
 };
 FlickrPhotoset.prototype.sync = function(callback) {
@@ -90,7 +87,7 @@ FlickrPhotoset.prototype.sync = function(callback) {
     }, 1);
   }
   else {
-    process.nextTick(callback);
+    setImmediate(callback);
   }
 };
 FlickrPhotoset.prototype.syncPhotos = function(callback, page) {
@@ -98,14 +95,17 @@ FlickrPhotoset.prototype.syncPhotos = function(callback, page) {
   // if (page === undefined) page = 1;
   // page through all the photos, assume the photoset exists
   var self = this;
-  flickr_client.api('flickr.photosets.getPhotos', {photoset_id: this.raw.id, page: page}, function(err, response) {
+  var data = {photoset_id: this.raw.id, page: page};
+  flickr_client.api('flickr.photosets.getPhotos', data, function(err, response) {
     logerr(err);
     self.total_pages = response.photoset.pages;
     // response.photoset.photo is an array of photo_objects
     response.photoset.photo.forEach(function(raw_photo) {
       self.addPhoto(raw_photo);
     });
+
     if (page < self.total_pages) {
+      // console.log('Recursing on flickr.photosets.getPhotos', data, page + 1, '<', self.total_pages);
       self.syncPhotos(callback, page + 1);
     }
     else {
@@ -124,9 +124,10 @@ function FlickrPhoto(title, raw) {
 
 
 
-function LocalPhoto(title) {
+function LocalPhoto(title, photoset_title, fullpath) {
   this.title = title;
-  // this.cache_key = 'flickr:' + album + '/' + title;
+  this.photoset_title = photoset_title;
+  this.fullpath = fullpath;
 }
 LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callback) {
   // callback signature: (<bool> exists)
@@ -139,11 +140,11 @@ LocalPhoto.prototype.existsInPhotoset = function(photoset_title, database, callb
     });
   }
   else {
-    callback(false);
+    setImmediate(function() { callback(false); });
   }
 };
 LocalPhoto.prototype.upload = function(photoset_title, fullpath, database, callback) {
-  // callback signature: (<bool> exists)
+  // callback signature: (error)
   var self = this;
   database.getPhotoset(photoset_title, function(photoset) {
     var params = {

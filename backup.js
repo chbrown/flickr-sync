@@ -1,33 +1,22 @@
 #!/usr/bin/env node
 var path = require('path');
 var glob = require('glob');
-var argv = require('optimist').argv;
-require('long-stack-traces');
+var argv = require('optimist').default('workers', 10).argv;
+var events = require('events');
+var util = require('util');
+var async = require('async');
 
 var flickr_client = require('./flickr_client');
 var models = require('./models');
 
 var img_regex = /(png|jpg|jpeg)/i;
 
-function logerr(err) { if (err) console.log('ERR', err); }
-
-function WorkerPool(max_workers, work) {
-  var self = this;
-  this.workers = 0;
-  this.max_workers = max_workers;
-  // `work` should be a function that takes one argument, a callback function for when it's finished.
-  this.work = work;
-  this.workCallback = function() {
-    self.workers--;
-    self.bump();
-  };
-}
-WorkerPool.prototype.bump = function() {
-  while (this.workers < this.max_workers) {
-    this.workers++;
-    this.work(this.workCallback);
+function logerr(err) {
+  if (err) {
+    console.log('flick-backup error:', err);
+    throw err;
   }
-};
+}
 
 flickr_client.init(function(err) {
   logerr(err);
@@ -43,67 +32,47 @@ flickr_client.init(function(err) {
       console.log('Queueing up ' + total + ' files.');
 
       var albums = {};
-      files.forEach(function(file) { albums[file.split(/\//)[0]] = 1; });
+      var local_photos = files.map(function(file, index) {
+        var file_parts = file.split(/\//);
+        var local_photo = new models.LocalPhoto(file_parts[1],
+          file_parts[0], path.join(argv.dir, file));
+
+        local_photo.index = index;
+        albums[local_photo.photoset_title] = 1;
+        return local_photo;
+      });
+      var album_names = Object.keys(albums);
 
       var flickr_database = new models.FlickrDatabase(response.photos.photo[0]);
-      flickr_database.init(Object.keys(albums), function() {
-        console.log('Preloaded albums:', Object.keys(albums).join(', '));
-        var work = function(finished) {
-          var file = files.shift();
+      flickr_database.init(album_names, function() {
+        console.log('Preloaded albums:', album_names.join(', '));
 
-          // check the exit condition:
-          if (file === undefined) {
-            console.log('No more photos could be found!');
-            process.exit();
-          }
+        async.eachLimit(local_photos, argv.workers, function(local_photo, finished) {
 
-          var fullpath = path.join(argv.dir, file);
-          var file_parts = file.split(/\//);
-          var photoset_title = file_parts[0];
-          var photo_title = file_parts[1];
-          var local_photo = new models.LocalPhoto(photo_title);
-
-          local_photo.existsInPhotoset(photoset_title, flickr_database, function(exists) {
-            var name = '(' + (total - files.length) + '/' + total + ') ' + local_photo.title;
+          var name = '(' + local_photo.index + '/' + total + ') ' + local_photo.title;
+          local_photo.existsInPhotoset(local_photo.photoset_title, flickr_database, function(exists) {
             if (exists) {
-              console.log(name + ' already exists in ' + photoset_title);
+              console.log(name + ' already exists in ' + local_photo.photoset_title);
               finished();
             }
             else {
-              // console.log('Photo already exists in Flickr');
-              local_photo.upload(photoset_title, fullpath, flickr_database, function(err) {
+              local_photo.upload(local_photo.photoset_title, local_photo.fullpath, flickr_database, function(err) {
                 if (err) {
-                  console.error('Failed uploading ' + name + ' to ' + photoset_title + '. Error message:');
+                  console.error('Failed uploading ' + name + ' to ' + local_photo.photoset_title + '. Error message:');
                   console.error(err);
                 }
                 else {
-                  console.log(name + ' uploaded to ' + photoset_title);
+                  console.log(name + ' uploaded to ' + local_photo.photoset_title);
                 }
                 finished();
               });
             }
           });
-          // try {
-          // }
-          // catch (exc) {
-          //   console.error('Encountered some error, printing and continuing');
-          //   console.error(exc.toString());
-          // }
-        };
-
-        var max_workers = parseInt(argv.workers || 10, 10);
-        console.log('Starting work with ' + max_workers + ' workers.');
-        var pool = new WorkerPool(max_workers, work);
-        pool.bump();
+        }, function() {
+          console.log('No more photos could be found!');
+          process.exit();
+        });
       });
     });
   });
-});
-
-process.on('uncaughtException', function(err) {
-  console.log('uncaughtException: ' + err);
-  console.log(err.stack);
-  // var stack = new Error().stack
-  // console.log( stack )
-  console.trace();
 });
