@@ -1,6 +1,6 @@
 {
   "name": "flickr-sync",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Flickr API CLI and archiving with parallel uploading",
   "homepage": "https://github.com/chbrown/flickr-sync",
   "keywords": [
@@ -15,16 +15,16 @@
     "url": "https://github.com/chbrown/flickr-sync/issues",
     "email": "Christopher Brown <io@henrian.com>"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "git://github.com/chbrown/flickr-sync.git"
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chbrown/flickr-sync.git"
   },
   "license": "MIT",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "bin": {
     "flickr": "bin/flickr.js"
   },
-  "dependencies" : {
+  "dependencies": {
     "async": "*",
     "eyes": "*",
     "flickr-with-uploads": "*",
