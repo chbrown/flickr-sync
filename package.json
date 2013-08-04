@@ -1,17 +1,36 @@
 {
-  "name": "flickr-backup",
-  "version": "0.1.0a",
-  "homepage": "https://github.com/chbrown/flickr-backup",
+  "name": "flickr-sync",
+  "version": "0.1.0",
+  "description": "Flickr API CLI and archiving with parallel uploading",
+  "homepage": "https://github.com/chbrown/flickr-sync",
+  "keywords": [
+    "flickr",
+    "backup",
+    "archive",
+    "upload",
+    "download",
+    "sync"
+  ],
+  "bugs": {
+    "url": "https://github.com/chbrown/flickr-sync/issues",
+    "email": "Christopher Brown <io@henrian.com>"
+  },
   "repository" : {
     "type" : "git",
-    "url" : "git@github.com:chbrown/flickr-backup.git"
+    "url" : "git://github.com/chbrown/flickr-sync.git"
   },
-  "author" : "Christopher Brown <io@henrian.com>",
-  "main" : "flickr-backup.js",
+  "license": "MIT",
+  "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
+  "bin": {
+    "flickr": "bin/flickr.js"
+  },
   "dependencies" : {
-    "flickr-with-uploads": "*",
-    "optimist": "*",
     "async": "*",
-    "glob": "*"
+    "eyes": "*",
+    "flickr-with-uploads": "*",
+    "glob": "*",
+    "optimist": "*",
+    "underscore": "*",
+    "winston": "*"
   }
 }
