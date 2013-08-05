@@ -55,7 +55,7 @@ exports.sync = function(api, directory, workers, callback) {
         else {
           var photo = photoset.getPhoto(local_photo.name);
           if (photo) {
-            logger.warn('%s already exists in %s', local_photo.name, local_photo.album);
+            logger.info('%s already exists in %s', local_photo.name, local_photo.album);
             callback();
           }
           else {

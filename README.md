@@ -1,5 +1,15 @@
 # Flickr Sync
 
+### Quickstart
+
+    npm install -g flickr-sync
+    vim ~/.flickr
+    > {"consumer_key": "...", "consumer_secret": "...",
+    >  "oauth_token": "...-...", "oauth_token_secret": "..."}
+    flickr sync --directory ~/Pictures
+
+## Motivation
+
 Flickr offers unlimited storage for Pro accounts, and one terabyte to free accounts (that's 100,000 10MB pictures). They allow you to have private photos, so they are an excellent photo backup service. They have [a great API](http://www.flickr.com/services/api/), and lots of apps. But I don't trust those apps (and many of the backup ones cost money), so I made my own backup script.
 
 ## Installation
@@ -134,7 +144,7 @@ The star of the show, the sync helper will read a directory of directories of pi
 
 All images are uploaded as completely private:
 
-```json
+```javascript
 {
   ...
   is_public: 0,

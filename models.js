@@ -199,8 +199,10 @@ FlickrPhotoset.prototype.upload = function(local_photo, callback) {
       }, callback);
     }],
   }, function(err, context) {
-    var photo = FlickrPhoto.fromJSON(context.getInfo.photo);
-    self.photos[photo.title] = photo;
+    if (!err) {
+      var photo = FlickrPhoto.fromJSON(context.getInfo.photo);
+      self.photos[photo.title] = photo;
+    }
     callback(err);
   });
 };

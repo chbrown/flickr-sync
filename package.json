@@ -27,7 +27,7 @@
   "dependencies": {
     "async": "*",
     "eyes": "*",
-    "flickr-with-uploads": "*",
+    "flickr-with-uploads": "~1.0",
     "glob": "*",
     "optimist": "*",
     "underscore": "*",
