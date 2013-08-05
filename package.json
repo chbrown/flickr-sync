@@ -1,6 +1,6 @@
 {
   "name": "flickr-sync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Flickr API CLI and archiving with parallel uploading",
   "homepage": "https://github.com/chbrown/flickr-sync",
   "keywords": [
