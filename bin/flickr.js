@@ -76,7 +76,9 @@ function apiCommand(api, optimist) {
 
 function syncCommand(api, optimist) {
   var argv = optimist.demand(['directory']).argv;
-  flickr_sync.sync(api, argv.directory, argv.workers);
+  flickr_sync.sync(api, argv.directory, argv.workers, function(err) {
+    logger.info('Finished; all photos have been processed');
+  });
 }
 
 var commands = {

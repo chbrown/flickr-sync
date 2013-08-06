@@ -30,6 +30,7 @@
     "flickr-with-uploads": "~1.0",
     "glob": "*",
     "optimist": "*",
+    "streaming": "*",
     "underscore": "*",
     "winston": "*"
   }

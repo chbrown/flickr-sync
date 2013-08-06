@@ -1,6 +1,5 @@
 'use strict'; /*jslint es5: true, node: true, indent: 2 */ /* globals setImmediate */
 var fs = require('fs');
-var glob = require('glob');
 var path = require('path');
 var async = require('async');
 var logger = require('winston');
@@ -71,102 +70,105 @@ FlickrDatabase.prototype.initialize = function(callback) {
 
 FlickrDatabase.prototype.getPhotoset = function(photoset_title, callback) {
   // callback signature: (err, Object<FlickrPhotoset>)
-  var self = this;
-  var photoset = this.photosets[photoset_title];
-  if (photoset) {
-    if (photoset.photos) {
-      callback(null, photoset);
+  var photoset = this.photosets[photoset_title] = this.photosets[photoset_title] || new FlickrPhotoset(this.api, {
+    title: photoset_title,
+    description: 'flickr-sync',
+    primary_photo_id: this.cover_photo.id,
+  });
+
+  // ensureCreated() will create the photoset if it did not come from Flickr.
+  photoset.ensureCreated(function(err) {
+    if (err) {
+      callback(err, photoset);
     }
     else {
-      photoset.syncPhotos(function(err) {
+      photoset.ensureSynced(function(err) {
         callback(err, photoset);
       });
     }
-  }
-  else {
-    photoset = new FlickrPhotoset(self.api, {
-      title: photoset_title,
-      description: 'flickr-sync',
-      primary_photo_id: self.cover_photo.id,
-    });
-
-    // must create the photoset if it does not exist
-    photoset.create(function(err) {
-      // photoset.photos for a new photoset will be null
-      if (err) {
-        callback(err, photoset);
-      }
-      else {
-        photoset.syncPhotos(function(err) {
-          callback(err, photoset);
-        });
-      }
-    });
-  }
+  });
 };
 
 function FlickrPhotoset(api, attributes) {
   this.api = api;
   _.extend(this, attributes);
+
   // this.photos = {photo_title: Object<FlickrPhoto>, ...}
+  this.photos = {};
+  // this.synced_pages = {1: true, 2: true, 3: false};
+  this.synced_pages_last = 1000;
+  this.synced_pages = {};
 }
-FlickrPhotoset.prototype.create = function(callback) {
-  /** simply persist the photoset described by this' properties to Flickr
-    callback signature: (err)
+FlickrPhotoset.prototype.ensureCreated = function(callback) {
+  /** Ensure that the photoset exists on Twitter.
+
+  If there is no available id, persist the photoset described by this'
+  properties to Flickr.
+
+  callback signature: function(err)
   */
-  logger.debug('Creating photoset, "%s"', this.title);
+  if (this.id) {
+    setImmediate(callback);
+  }
+  else {
+    logger.debug('Creating photoset, "%s"', this.title);
+    var self = this;
+    this.api({
+      method: 'flickr.photosets.create',
+      title: this.title,
+      description: this.description,
+      primary_photo_id: this.primary_photo_id,
+    }, function(err, response) {
+      if (!err) {
+        self.id = response.photoset.id;
+      }
+      callback(err);
+    });
+  }
+};
+FlickrPhotoset.prototype.ensureSynced = function(callback) {
+  /** Page through all available photos, assuming the photoset exists,
+  caching retrieved photos in this.photos.
+
+  callback signature: function(err)
+  */
   var self = this;
-  this.api({
-    method: 'flickr.photosets.create',
-    title: this.title,
-    description: this.description,
-    primary_photo_id: this.primary_photo_id,
-  }, function(err, response) {
+  var next = function(err) {
+    if (err) {
+      callback(err);
+    }
+    else {
+      self.ensureSynced(callback);
+    }
+  };
+  for (var i = 1; i <= this.synced_pages_last; i++) {
+    if (this.synced_pages[i] === undefined) {
+      return this.getPage(i, next);
+    }
+  }
+  callback();
+};
+FlickrPhotoset.prototype.getPage = function(page, callback) {
+  // callback signature: function(err)
+  var self = this;
+  logger.debug('FlickrPhotoset.getPage: %d/%d', page, this.synced_pages_last, this.synced_pages);
+  this.api({method: 'flickr.photosets.getPhotos', photoset_id: this.id, page: page}, function(err, response) {
     if (!err) {
-      self.id = response.photoset.id;
+      self.synced_pages_last = response.photoset.pages;
+
+      // response.photoset.photo is an array of photo_objects
+      response.photoset.photo.forEach(function(photo_json) {
+        self.photos[photo_json.title] = new FlickrPhoto({
+          id: photo_json.id,
+          title: photo_json.title,
+          isprimary: photo_json.isprimary,
+        });
+      });
+
+      self.synced_pages[response.photoset.page] = true;
     }
     callback(err);
   });
-  // async.waterfall([], callback);
-  // function(response, callback) {
-  //   self.api({
-  //     method: 'flickr.photosets.getInfo',
-  //     photoset_id: response.id,
-  //   }, callback);
-  // }
-};
-FlickrPhotoset.prototype.syncPhotos = function(callback) {
-  // callback signature: (err)
-  // page through all available photos, assuming the photoset exists
-  // caching retrieved photos in this.photos
-  this.photos = {};
-  var self = this;
-  (function next(page) {
-    self.api({method: 'flickr.photosets.getPhotos', photoset_id: self.id, page: page}, function(err, response) {
-      if (err) {
-        logger.error('Error in syncPhotos: flickr.photosets.getPhotos.');
-        callback(err);
-      }
-      else {
-        // response.photoset.photo is an array of photo_objects
-        response.photoset.photo.forEach(function(photo_json) {
-          var photo = FlickrPhoto.fromJSON(photo_json);
-          self.photos[photo.title] = photo;
-        });
-
-        if (page < response.photoset.pages) {
-          next(page + 1);
-        }
-        else {
-          callback();
-        }
-      }
-    });
-  }(1));
-};
-FlickrPhotoset.prototype.getPhoto = function(photo_title) {
-  // might return null
-  return this.photos[photo_title];
 };
 FlickrPhotoset.prototype.upload = function(local_photo, callback) {
   // callback signature: function(err)
@@ -216,6 +218,7 @@ FlickrPhotoset.fromJSON = function(api, obj) {
   });
 };
 
+
 var LocalPhoto = exports.LocalPhoto = function(album, name, filepath) {
   /** create a representation of a photo that exists on the local filesystem.
     album: The name of the photoset to upload this photo to (usually the parent directory's name)
@@ -225,24 +228,4 @@ var LocalPhoto = exports.LocalPhoto = function(album, name, filepath) {
   this.album = album;
   this.name = name;
   this.filepath = filepath;
-};
-LocalPhoto.stream = function(root) {
-  /** returns a Readable stream of LocalPhoto objects */
-  var output = stream.Readable({objectMode: true});
-  // supported types listed here: http://www.flickr.com/help/photos/#150488231
-  // trust Glob not to give me repeats
-  var glob_stream = new glob.Glob('*/*.{gif,png,jpg,jpeg,tif,tiff}', {cwd: root, nocase: true})
-  .on('match', function(match) {
-    var album = path.dirname(match);
-    var photo = path.basename(match);
-    var local_photo = new LocalPhoto(album, photo, path.join(root, match));
-    output.emit('data', local_photo);
-  })
-  .on('error', function(err) {
-    output.emit('error', err);
-  })
-  .on('end', function() {
-    output.push(null);
-  });
-  return output;
 };
