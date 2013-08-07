@@ -70,6 +70,7 @@ FlickrDatabase.prototype.initialize = function(callback) {
 
 FlickrDatabase.prototype.getPhotoset = function(photoset_title, callback) {
   // callback signature: (err, Object<FlickrPhotoset>)
+  // this function must be truly async because it's used as a streaming.Queue worker
   var photoset = this.photosets[photoset_title] = this.photosets[photoset_title] || new FlickrPhotoset(this.api, {
     title: photoset_title,
     description: 'flickr-sync',
@@ -108,6 +109,7 @@ FlickrPhotoset.prototype.ensureCreated = function(callback) {
   callback signature: function(err)
   */
   if (this.id) {
+    // force async even if we don't actually have to
     setImmediate(callback);
   }
   else {

@@ -12,6 +12,7 @@ exports.sync = function(api, directory, workers, callback) {
 
     var worker = function(local_photo, callback) {
       // flickr_database.getPhotoset checks the local cache and hits the Flickr API as needed.
+      // as per the streaming.Queue API, this must ALWAYS be truly async.
       flickr_database.getPhotoset(local_photo.album, function(err, photoset) {
         if (err) {
           logger.error('getPhotoset error: %s', local_photo.album, err);
