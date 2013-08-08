@@ -134,7 +134,7 @@ flickr api -m flickr.photosets.getList --select photosets.photoset | \
 * The `--select` flag pulls out a specific value or set of values from the response. If you select an array, it will output one json entry per line.
     - In this case, `--select photosets.photoset` selects the list of photoset object entries in the `photoset` field, which is a property of the root-level `photosets` dictionary.
 * `json -C ...` filters out everything but a few of the fields (the photoset name and id) in and tab-separates them.
-    - [`npm install -g json`](https://github.com/zpoley/json-command) to instal
+    - [`npm install -g json`](https://github.com/zpoley/json-command) to install
 * `awk` pulls out just the photoset id, and puts the appropriate argument name in front of the value.
 * Piping into `flickr api` will hit the API at `flickr.photosets.delete` once for each line of input.
 
