@@ -25,16 +25,20 @@ exports.sync = function(api, directory, workers, callback) {
           callback();
         }
         else {
-          logger.warn('Could not find', local_photo.name, 'in', photoset.photos, '-', local_photo.album);
+          logger.debug('Did not find photo named "%s" in photoset "%s", uploading.',
+            local_photo.name, local_photo.album);
           photoset.upload(local_photo, function(err) {
             if (!err) {
               logger.info('%s uploaded to %s', local_photo.name, local_photo.album);
             }
             else {
-              logger.error('Failed to upload %s to %s', local_photo.name, local_photo.album, err);
-              // queue.write(local_photo);
+              logger.error('Failed to upload photo "%s" to photoset "%s"',
+                local_photo.name, local_photo.album, err);
+              logger.warn('Retrying (writing local photo back to queue stream)');
+              queue_stream.write(local_photo);
             }
-            callback(err);
+            // don't report error, even if there is one
+            callback();
           });
         }
       });
@@ -53,13 +57,13 @@ exports.sync = function(api, directory, workers, callback) {
     })
     .on('error', function(err) { throw err; })
     .on('end', function() {
-      logger.debug('Added photos to the queue.');
+      logger.info('Added photos to the queue.');
     });
 
     var queue_stream = new streaming.Queue(20, worker)
     .on('error', function(err) { throw err; })
     .on('end', function() {
-      logger.debug('Upload queue is drained.');
+      logger.info('Upload queue is drained.');
       callback();
     });
 

@@ -62,6 +62,7 @@ function apiCommand(api, optimist) {
       throw err;
     })
     .on('data', function(line) {
+      // note that this will send all requests off in parallel
       handleParams(line.trim().split(/\s+/g));
     })
     .on('end', function(line) {
