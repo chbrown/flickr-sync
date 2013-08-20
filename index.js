@@ -1,4 +1,4 @@
-'use strict'; /*jslint es5: true, node: true, indent: 2 */
+'use strict'; /*jslint es5: true, node: true, indent: 2 */ /* globals setImmediate */
 var logger = require('winston');
 var path = require('path');
 var streaming = require('streaming');
@@ -10,7 +10,7 @@ exports.sync = function(api, directory, workers, callback) {
   flickr_database.initialize(function(err) {
     if (err) return callback(err);
 
-    var worker = function(local_photo, callback) {
+    var uploadLocalPhoto = function(local_photo, callback) {
       // flickr_database.getPhotoset checks the local cache and hits the Flickr API as needed.
       // as per the streaming.Queue API, this must ALWAYS be truly async.
       flickr_database.getPhotoset(local_photo.album, function(err, photoset) {
@@ -30,15 +30,19 @@ exports.sync = function(api, directory, workers, callback) {
           photoset.upload(local_photo, function(err) {
             if (!err) {
               logger.info('%s uploaded to %s', local_photo.name, local_photo.album);
+              callback();
             }
             else {
               logger.error('Failed to upload photo "%s" to photoset "%s"',
                 local_photo.name, local_photo.album, err);
-              logger.warn('Retrying (writing local photo back to queue stream)');
-              queue_stream.write(local_photo);
+              // write local photo back to the end of the queue stream?
+              // need to support reopening a streaming.Queue
+              // queue_stream.write(local_photo);
+              logger.warn('Retrying immediately (warning: may induce infinite loop)');
+              setImmediate(function() {
+                uploadLocalPhoto(local_photo, callback);
+              });
             }
-            // don't report error, even if there is one
-            callback();
           });
         }
       });
@@ -60,7 +64,7 @@ exports.sync = function(api, directory, workers, callback) {
       logger.info('Added photos to the queue.');
     });
 
-    var queue_stream = new streaming.Queue(20, worker)
+    var queue_stream = new streaming.Queue(20, uploadLocalPhoto)
     .on('error', function(err) { throw err; })
     .on('end', function() {
       logger.info('Upload queue is drained.');
