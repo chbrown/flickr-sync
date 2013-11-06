@@ -48,7 +48,7 @@ exports.sync = function(api, directory, workers, callback) {
       });
     };
 
-    var glob_stream = new streaming.Glob('*/*.{gif,png,jpg,jpeg,tif,tiff}', {cwd: directory, nocase: true})
+    var glob_stream = new streaming.Glob('*/*.{gif,png,jpg,jpeg,tif,tiff,avi,mp4,mov,flv}', {cwd: directory, nocase: true})
     .on('error', function(err) { throw err; })
     .on('end', function() {
       logger.debug('Globbed all files from subfolders.');
