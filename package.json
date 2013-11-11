@@ -1,6 +1,6 @@
 {
   "name": "flickr-sync",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Deprecated. Use flickr-with-uploads instead.",
   "homepage": "https://github.com/chbrown/flickr-with-uploads",
   "keywords": [
